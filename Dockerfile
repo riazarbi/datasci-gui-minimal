@@ -1,4 +1,8 @@
-FROM riazarbi/docker-r-python-minimal:latest
+FROM riazarbi/datasci-python-minimal:latest
+
+LABEL authors="Riaz Arbi,Gordon Inggs"
+
+USER root
 
 # JUPYTER =====================================================================
 
