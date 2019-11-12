@@ -11,23 +11,6 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
-RUN apt-get update && apt-get install -yq --no-install-recommends \
-    npm nodejs
-# Install all the jupyter packages
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install jupyter jupyterhub jupyterlab \
- && python3 -m pip install nbgitpuller
-#    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
-#    jupyter labextension install @jupyterlab/git && \
-#    python3 -m pip install jupyterlab-git && \
-#    jupyter serverextension enable --py jupyterlab_git --sys-prefix && \
-#    python3 -m pip install ipyleaflet && \
-#    jupyter nbextension enable --py --sys-prefix ipyleaflet && \
-#    jupyter nbextension enable --py widgetsnbextension && \
-#    jupyter labextension install jupyter-leaflet && \
-#    python3 -m pip install ipympl && \
-#    jupyter labextension install jupyter-matplotlib
-
 # Configure environment
 ENV SHELL=/bin/bash \
     NB_USER=$NB_USER \
@@ -40,19 +23,34 @@ ENV HOME=/home/$NB_USER
 
 # Add a script that we will use to correct permissions after running certain commands
 ADD fix-permissions /usr/local/bin/fix-permissions
-RUN chmod +x /usr/local/bin/fix-permissions
 
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    npm nodejs \
+# Install all the jupyter packages
+ && python3 -m pip install --upgrade pip && \
+    python3 -m pip install jupyter jupyterhub jupyterlab \
+ && python3 -m pip install nbgitpuller \
+#    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
+#    jupyter labextension install @jupyterlab/git && \
+#    python3 -m pip install jupyterlab-git && \
+#    jupyter serverextension enable --py jupyterlab_git --sys-prefix && \
+#    python3 -m pip install ipyleaflet && \
+#    jupyter nbextension enable --py --sys-prefix ipyleaflet && \
+#    jupyter nbextension enable --py widgetsnbextension && \
+#    jupyter labextension install jupyter-leaflet && \
+#    python3 -m pip install ipympl && \
+#    jupyter labextension install jupyter-matplotlib
+ && chmod +x /usr/local/bin/fix-permissions \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
-RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc
-
+ && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
 # Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
 # and make sure these dirs are writable by the `users` group.
-RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
+ && echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
     useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
     chmod g+w /etc/passwd 
-RUN /usr/local/bin/fix-permissions $HOME
+ && /usr/local/bin/fix-permissions $HOME
 
 USER $NB_UID
 WORKDIR $HOME
