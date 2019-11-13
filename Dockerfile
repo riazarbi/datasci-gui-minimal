@@ -11,6 +11,9 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
+# Expose the right port
+EXPOSE 8888
+
 # Configure environment
 ENV SHELL=/bin/bash \
     NB_USER=$NB_USER \
@@ -18,8 +21,8 @@ ENV SHELL=/bin/bash \
     NB_GID=$NB_GID \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
-ENV HOME=/home/$NB_USER
+    LANGUAGE=en_US.UTF-8 \
+    HOME=/home/$NB_USER
 
 # Add a script that we will use to correct permissions after running certain commands
 ADD fix-permissions /usr/local/bin/fix-permissions
@@ -49,7 +52,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
     useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
-    chmod g+w /etc/passwd 
+    chmod g+w /etc/passwd  \
  && /usr/local/bin/fix-permissions $HOME
 
 USER $NB_UID
@@ -60,9 +63,6 @@ RUN npm cache clean --force && \
     jupyter notebook --generate-config && \
     rm -rf /home/$NB_USER/.cache/yarn && \
     fix-permissions /home/$NB_USER
-
-# Expose the right port
-EXPOSE 8888
 
 # Configure container startup
 CMD ["/bin/bash", "start-notebook.sh"]
@@ -102,25 +102,23 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # Install RStudio
  && wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
  && gdebi -n rstudio-server-${RSTUDIO_VERSION}-amd64.deb \ 
- && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb 
+ && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
 # Install Shiny Server
-RUN wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O ss-latest.deb \
+ && wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O ss-latest.deb \
  && gdebi -n ss-latest.deb \
- && rm -f ss-latest.deb 
+ && rm -f ss-latest.deb \
 #    Install R package dependencies
-RUN DEBIAN_FRONTEND=noninteractive \
+ && DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     libxml2-dev \
-#    libssl-dev \
     libssh2-1-dev \
     libgit2-dev \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* 
+ && rm -rf /var/lib/apt/lists/* \
 #   Note we use install2r because it halts build it package install fails. 
 #   This is silent with install.packages(). Also multicore is nice.
-
-RUN Rscript -e 'install.packages(c("littler", "docopt"))' \ 
+ && Rscript -e 'install.packages(c("littler", "docopt"))' \ 
  && ln -s /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
  && ln -s /usr/local/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
  && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r \
@@ -130,16 +128,15 @@ RUN Rscript -e 'install.packages(c("littler", "docopt"))' \
  shiny \ 
  rmarkdown \
  knitr \
- RJDBC
-
+ RJDBC \
 # Jupyter-rsession
-RUN R -e "install.packages('IRkernel')" \
- && R --quiet -e "IRkernel::installspec(user=FALSE)"
+ && R -e "install.packages('IRkernel')" \
+ && R --quiet -e "IRkernel::installspec(user=FALSE)" \
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
-RUN python3 -m pip install jupyter-server-proxy \
-  && python3 -m pip install jupyter-rsession-proxy
-RUN /usr/local/bin/fix-permissions $HOME
+ && python3 -m pip install jupyter-server-proxy \
+ && python3 -m pip install jupyter-rsession-proxy \
+ && /usr/local/bin/fix-permissions $HOME
 
 # Run as NB_USER ============================================================
 
