@@ -120,7 +120,7 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
  && python3 -m pip install jupyter-rsession-proxy 
-
+ 
 # USER SETTINGS ============================================================
 
 # Switch to $NB_USER
@@ -131,8 +131,7 @@ WORKDIR $HOME
 # Clean npm cache, create a new jupyter notebook config
 RUN npm cache clean --force && \
     jupyter notebook --generate-config && \
-    rm -rf /home/$NB_USER/.cache/yarn && \
-    fix-permissions /home/$NB_USER
+    rm -rf /home/$NB_USER/.cache/yarn
 
 # Configure container startup
 CMD ["/bin/bash", "start-notebook.sh"]
