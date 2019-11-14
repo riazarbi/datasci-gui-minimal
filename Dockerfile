@@ -4,12 +4,18 @@ LABEL authors="Riaz Arbi,Gordon Inggs"
 
 USER root
 
-# JUPYTER =====================================================================
+# ARGS =======================================================================
+# Install R and RStudio
+ENV RSTUDIO_VERSION 1.2.5001
+ENV SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
+
+
+# JUPYTER =====================================================================
 
 # Expose the right port
 EXPOSE 8888
@@ -55,7 +61,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     chmod g+w /etc/passwd  \
  && /usr/local/bin/fix-permissions $HOME
 
+# Switch to $NB_USER
 USER $NB_UID
+# Switch to $HOME of $NB_USER
 WORKDIR $HOME
 
 # Clean npm cache, create a new jupyter notebook config
@@ -79,9 +87,6 @@ RUN fix-permissions /etc/jupyter/
 
 # RSESSION ==================================================================
 
-# Install R and RStudio
-ENV RSTUDIO_VERSION 1.2.5001
-
 # Add apt gpg key
 RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 \
  && gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | sudo apt-key add - \
@@ -104,7 +109,7 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
  && gdebi -n rstudio-server-${RSTUDIO_VERSION}-amd64.deb \ 
  && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
 # Install Shiny Server
- && wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O ss-latest.deb \
+ && wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-${SHINY_VERSION}-amd64.deb" -O ss-latest.deb \
  && gdebi -n ss-latest.deb \
  && rm -f ss-latest.deb \
 #    Install R package dependencies
