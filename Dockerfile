@@ -2,9 +2,12 @@ FROM riazarbi/datasci-python-minimal:latest
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
+# Be explicit about user
+# This is because we switch users during this build and it can get confusing
 USER root
 
 # ARGS =======================================================================
+
 # Install R and RStudio
 ENV RSTUDIO_VERSION 1.2.5001
 ENV SHINY_VERSION 1.5.9.923
@@ -14,13 +17,8 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
-
-# JUPYTER =====================================================================
-
-# Expose the right port
-EXPOSE 8888
-
 # Configure environment
+# Do we need this? Conflicts early locale settings
 ENV SHELL=/bin/bash \
     NB_USER=$NB_USER \
     NB_UID=$NB_UID \
@@ -29,6 +27,11 @@ ENV SHELL=/bin/bash \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     HOME=/home/$NB_USER
+
+# JUPYTER =====================================================================
+
+# Expose the right port
+EXPOSE 8888
 
 # Add a script that we will use to correct permissions after running certain commands
 ADD fix-permissions /usr/local/bin/fix-permissions
@@ -60,30 +63,6 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
     chmod g+w /etc/passwd  \
  && /usr/local/bin/fix-permissions $HOME
-
-# Switch to $NB_USER
-USER $NB_UID
-# Switch to $HOME of $NB_USER
-WORKDIR $HOME
-
-# Clean npm cache, create a new jupyter notebook config
-RUN npm cache clean --force && \
-    jupyter notebook --generate-config && \
-    rm -rf /home/$NB_USER/.cache/yarn && \
-    fix-permissions /home/$NB_USER
-
-# Configure container startup
-CMD ["/bin/bash", "start-notebook.sh"]
-
-# Add local files as late as possible to avoid cache busting
-COPY start.sh /usr/local/bin/
-COPY start-notebook.sh /usr/local/bin/
-COPY start-singleuser.sh /usr/local/bin/
-COPY jupyter_notebook_config.py /etc/jupyter/
-
-# Fix permissions on /etc/jupyter as root
-USER root
-RUN fix-permissions /etc/jupyter/
 
 # RSESSION ==================================================================
 
@@ -140,8 +119,33 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
- && python3 -m pip install jupyter-rsession-proxy \
- && /usr/local/bin/fix-permissions $HOME
+ && python3 -m pip install jupyter-rsession-proxy 
+
+# USER SETTINGS ============================================================
+
+# Switch to $NB_USER
+USER $NB_UID
+# Switch to $HOME of $NB_USER
+WORKDIR $HOME
+
+# Clean npm cache, create a new jupyter notebook config
+RUN npm cache clean --force && \
+    jupyter notebook --generate-config && \
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    fix-permissions /home/$NB_USER
+
+# Configure container startup
+CMD ["/bin/bash", "start-notebook.sh"]
+
+# Add local files as late as possible to avoid cache busting
+COPY start.sh /usr/local/bin/
+COPY start-notebook.sh /usr/local/bin/
+COPY start-singleuser.sh /usr/local/bin/
+COPY jupyter_notebook_config.py /etc/jupyter/
+
+# Fix permissions on /etc/jupyter as root
+USER root
+RUN fix-permissions /etc/jupyter/
 
 # Run as NB_USER ============================================================
 
