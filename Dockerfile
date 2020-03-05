@@ -119,7 +119,7 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
- && python3 -m pip install jupyter-rsession-proxy 
+ && python3 -m pip install jupyter-rsession-proxy==1.0b6 
  
 # USER SETTINGS ============================================================
 
