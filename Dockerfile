@@ -145,6 +145,7 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 RUN fix-permissions /etc/jupyter/
+RUN fix-permissions $HOME
 
 # Run as NB_USER ============================================================
 
