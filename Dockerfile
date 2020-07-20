@@ -9,8 +9,8 @@ USER root
 # ARGS =======================================================================
 
 # Install R and RStudio
-ENV RSTUDIO_VERSION 1.3.1056
-ENV SHINY_VERSION 1.5.14.948
+ENV RSTUDIO_VERSION 1.2.5001
+ENV SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
@@ -72,8 +72,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
 # Add apt gpg key
 RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 \
  && gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | sudo apt-key add - \
- && echo deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/ >> /etc/apt/sources.list \
- && echo deb http://za.archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe >> /etc/apt/sources.list \
+ && echo deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/ >> /etc/apt/sources.list \
+ && echo deb http://za.archive.ubuntu.com/ubuntu/ focal-backports main restricted universe >> /etc/apt/sources.list \
 # Install prerequisites
  && DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
