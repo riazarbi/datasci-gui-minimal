@@ -36,7 +36,10 @@ EXPOSE 8888
 # Add a script that we will use to correct permissions after running certain commands
 ADD fix-permissions /usr/local/bin/fix-permissions
 
-RUN apt-get update && apt-get install -yq --no-install-recommends \
+RUN DEBIAN_FRONTEND=noninteractive \ 
+    apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    apt-get install -yq --no-install-recommends \
     npm nodejs \
 # Install all the jupyter packages
  && python3 -m pip install --upgrade pip && \
@@ -74,7 +77,9 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # Install prerequisites
  && DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
+    DEBIAN_FRONTEND=noninteractive \
     apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
     fonts-dejavu \
     gfortran \
@@ -119,7 +124,7 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
 # && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
- && python3 -m pip install jupyter-rsession-proxy==1.1 
+ && python3 -m pip install jupyter-rsession-proxy==1.2 
  
 # USER SETTINGS ============================================================
 
