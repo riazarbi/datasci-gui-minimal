@@ -9,7 +9,10 @@ USER root
 # ARGS =======================================================================
 
 # Install R and RStudio
+# Works
 ENV RSTUDIO_VERSION 1.2.5001
+# Doesn't work
+#ENV RSTUDIO_VERSION 1.3.1056
 ENV SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
