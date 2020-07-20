@@ -9,8 +9,8 @@ USER root
 # ARGS =======================================================================
 
 # Install R and RStudio
-ENV RSTUDIO_VERSION 1.2.5001
-ENV SHINY_VERSION 1.5.9.923
+ENV RSTUDIO_VERSION 1.3.1056
+ENV SHINY_VERSION 1.5.14.948
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
