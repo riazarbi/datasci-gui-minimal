@@ -9,10 +9,7 @@ USER root
 # ARGS =======================================================================
 
 # Install R and RStudio
-# Works
 ENV RSTUDIO_VERSION 1.2.5001
-# Doesn't work
-#ENV RSTUDIO_VERSION 1.3.1056
 ENV SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
@@ -39,25 +36,12 @@ EXPOSE 8888
 # Add a script that we will use to correct permissions after running certain commands
 ADD fix-permissions /usr/local/bin/fix-permissions
 
-RUN DEBIAN_FRONTEND=noninteractive \ 
-    apt-get update \
- && DEBIAN_FRONTEND=noninteractive \
-    apt-get install -yq --no-install-recommends \
+RUN apt-get update && apt-get install -yq --no-install-recommends \
     npm nodejs \
 # Install all the jupyter packages
  && python3 -m pip install --upgrade pip && \
     python3 -m pip install jupyter jupyterhub jupyterlab \
  && python3 -m pip install nbgitpuller \
-#    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
-#    jupyter labextension install @jupyterlab/git && \
-#    python3 -m pip install jupyterlab-git && \
-#    jupyter serverextension enable --py jupyterlab_git --sys-prefix && \
-#    python3 -m pip install ipyleaflet && \
-#    jupyter nbextension enable --py --sys-prefix ipyleaflet && \
-#    jupyter nbextension enable --py widgetsnbextension && \
-#    jupyter labextension install jupyter-leaflet && \
-#    python3 -m pip install ipympl && \
-#    jupyter labextension install jupyter-matplotlib
  && chmod +x /usr/local/bin/fix-permissions \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
  && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
@@ -75,14 +59,12 @@ RUN DEBIAN_FRONTEND=noninteractive \
 # Add apt gpg key
 RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 \
  && gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | sudo apt-key add - \
- && echo deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/ >> /etc/apt/sources.list \
- && echo deb http://za.archive.ubuntu.com/ubuntu/ focal-backports main restricted universe >> /etc/apt/sources.list \
+ && echo deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/ >> /etc/apt/sources.list \
+ && echo deb http://za.archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe >> /etc/apt/sources.list \
 # Install prerequisites
  && DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive \
     apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
     fonts-dejavu \
     gfortran \
@@ -124,10 +106,8 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
-# && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
-# && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
- && python3 -m pip install jupyter-rsession-proxy==1.2 
+ && python3 -m pip install jupyter-rsession-proxy==1.1 
  
 # USER SETTINGS ============================================================
 
