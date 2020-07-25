@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-python-minimal:latest
+FROM riazarbi/datasci-base:bionic
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
