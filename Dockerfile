@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-python-minimal:latest
+FROM riazarbi/datasci-base:focal
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
