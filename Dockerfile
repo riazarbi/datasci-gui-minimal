@@ -48,16 +48,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
  && python3 -m pip install --upgrade pip && \
     python3 -m pip install jupyter jupyterhub jupyterlab \
  && python3 -m pip install nbgitpuller \
-#    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
-#    jupyter labextension install @jupyterlab/git && \
-#    python3 -m pip install jupyterlab-git && \
-#    jupyter serverextension enable --py jupyterlab_git --sys-prefix && \
-#    python3 -m pip install ipyleaflet && \
-#    jupyter nbextension enable --py --sys-prefix ipyleaflet && \
-#    jupyter nbextension enable --py widgetsnbextension && \
-#    jupyter labextension install jupyter-leaflet && \
-#    python3 -m pip install ipympl && \
-#    jupyter labextension install jupyter-matplotlib
  && chmod +x /usr/local/bin/fix-permissions \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
  && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
@@ -124,11 +114,40 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
-# && python3 -m pip install git+https://github.com/jupyterhub/jupyter-server-proxy \
-# && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy 
  && python3 -m pip install jupyter-server-proxy \
  && python3 -m pip install jupyter-rsession-proxy==1.2 
+
+# JULIA ====================================================================
+
+# Julia dependencies
+# install Julia packages in /opt/julia instead of $HOME
+ENV JULIA_DEPOT_PATH=/opt/julia
+ENV JULIA_PKGDIR=/opt/julia
+ENV JULIA_VERSION=1.5.0
+
+WORKDIR /tmp
+
+# hadolint ignore=SC2046
+RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
+    wget -q https://julialang-s3.julialang.org/bin/linux/x64/$(echo "${JULIA_VERSION}" | cut -d. -f 1,2)"/julia-${JULIA_VERSION}-linux-x86_64.tar.gz" && \
+    #echo "fd6d8cadaed678174c3caefb92207a3b0e8da9f926af6703fb4d1e4e4f50610a *julia-${JULIA_VERSION}-linux-x86_64.tar.gz" | sha256sum -c - && \
+    tar xzf "julia-${JULIA_VERSION}-linux-x86_64.tar.gz" -C "/opt/julia-${JULIA_VERSION}" --strip-components=1 && \
+    rm "/tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz"
+RUN ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia
+
+# Show Julia where conda libraries are \
+RUN mkdir /etc/julia && \
+    # Create JULIA_PKGDIR \
+    mkdir "${JULIA_PKGDIR}" && \
+    chown "${NB_USER}" "${JULIA_PKGDIR}" && \
+    fix-permissions "${JULIA_PKGDIR}"
  
+# Install IJulia as jovyan and then move the kernelspec out
+# to the system share location. Avoids problems with runtime UID change not
+# taking effect properly on the .local folder in the jovyan home dir.
+RUN julia -e 'import Pkg; Pkg.update()' && \
+    julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" 
+
 # USER SETTINGS ============================================================
 
 # Switch to $NB_USER
@@ -153,7 +172,7 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 RUN fix-permissions /etc/jupyter/
-RUN fix-permissions $HOME
+RUN fix-permissions $HOME ${JULIA_PKGDIR}
 
 # Run as NB_USER ============================================================
 
