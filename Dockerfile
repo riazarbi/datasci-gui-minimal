@@ -146,7 +146,12 @@ RUN mkdir /etc/julia && \
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
 RUN julia -e 'import Pkg; Pkg.update()' && \
-    julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" 
+    julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" && \
+    # move kernelspec out
+    mv "${HOME}/.local/share/jupyter/kernels/julia"* "/usr/local/share/jupyter/kernels/" && \
+    chmod -R go+rx "/usr/local/share/jupyter" && \
+    rm -rf "${HOME}/.local" && \
+    fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter"
 
 # USER SETTINGS ============================================================
 
