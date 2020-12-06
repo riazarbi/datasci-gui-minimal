@@ -181,8 +181,6 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 USER root
 RUN fix-permissions /etc/jupyter/
 RUN fix-permissions $HOME ${JULIA_PKGDIR}
-RUN usermod -aG rstudio-server $NB_USER
-
 
 # Run as NB_USER ============================================================
 
