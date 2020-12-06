@@ -9,13 +9,8 @@ USER root
 # ARGS =======================================================================
 
 # Install R and RStudio
-# Works
-#ENV RSTUDIO_VERSION 1.2.5001
-# Doesn't work
-#ENV RSTUDIO_VERSION 1.3.1056
-# Testing
-ENV RSTUDIO_VERSION 1.3.1093
-
+# Lasty version working as at 7-12-2020
+ENV RSTUDIO_VERSION 1.3.1056
 ENV SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
@@ -32,7 +27,7 @@ ENV SHELL=/bin/bash \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    HOME=/home/$NB_USER
+    HOME=/home/$NB_USER 
 
 # JUPYTER =====================================================================
 
@@ -83,17 +78,18 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     r-base \
     r-recommended \
     r-base-dev \
-    gdebi-core \
+    gdebi-core 
 # Install RStudio
- && wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
+RUN wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
+#RUN wget --quiet https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-1.4.1078-amd64.deb \
  && gdebi -n rstudio-server-${RSTUDIO_VERSION}-amd64.deb \ 
- && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
+ && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb 
 # Install Shiny Server
- && wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-${SHINY_VERSION}-amd64.deb" -O ss-latest.deb \
+RUN wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-${SHINY_VERSION}-amd64.deb" -O ss-latest.deb \
  && gdebi -n ss-latest.deb \
- && rm -f ss-latest.deb \
+ && rm -f ss-latest.deb 
 #    Install R package dependencies
- && DEBIAN_FRONTEND=noninteractive \
+RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     libxml2-dev \
@@ -117,8 +113,12 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
- && python3 -m pip install jupyter-server-proxy \
+ #&& python3 -m pip install jupyter-server-proxy \
  && python3 -m pip install jupyter-rsession-proxy==1.2 
+
+# dummy package hack for Rstudio 1.3
+ADD package /tmp/package 
+RUN cd /tmp && R CMD INSTALL package
 
 # JULIA ====================================================================
 
@@ -181,8 +181,12 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 USER root
 RUN fix-permissions /etc/jupyter/
 RUN fix-permissions $HOME ${JULIA_PKGDIR}
+RUN usermod -aG rstudio-server $NB_USER
+
 
 # Run as NB_USER ============================================================
 
 USER $NB_USER
 ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
+ENV LD_LIBRARY_PATH=/usr/local/lib/R/lib
+
