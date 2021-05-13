@@ -95,6 +95,10 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     libxml2-dev \
     libssh2-1-dev \
     libgit2-dev \
+    libcurl4-openssl-dev \
+    cargo \
+    libmagick++-dev \
+    libfontconfig1-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
 #   Note we use install2r because it halts build it package install fails. 
@@ -102,7 +106,11 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
  && Rscript -e 'install.packages(c("littler", "docopt"))' \ 
  && ln -s /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
  && ln -s /usr/local/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
- && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r \
+ && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r 
+# Set up openblas and link to R
+RUN install2.r -e -n 3 -s --deps TRUE \
+ ropenblas \
+ && R -e "ropenblas::ropenblas()" \
 # Install jupyter R kernel
  && install2.r -e -n 3 -s --deps TRUE \
  devtools \
