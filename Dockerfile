@@ -56,7 +56,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
     useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
-    usermod -a -G staff $NB_USER \sudo usermod -a -G staff your_user_name
+    usermod -a -G staff $NB_USER && \
     chmod g+w /etc/passwd  \
  && /usr/local/bin/fix-permissions $HOME
 
