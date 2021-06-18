@@ -10,7 +10,7 @@ USER root
 
 # Install R and RStudio
 # Works
-ENV RSTUDIO_VERSION 1.2.5001
+ENV RSTUDIO_VERSION 1.3.959
 
 ENV SHINY_VERSION 1.5.9.923
 
@@ -28,7 +28,8 @@ ENV SHELL=/bin/bash \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    HOME=/home/$NB_USER
+    HOME=/home/$NB_USER \
+    JUPYTER_ENABLE_LAB=1
 
 # JUPYTER =====================================================================
 
@@ -123,7 +124,11 @@ RUN install2.r -e -n 3 -s --deps TRUE \
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
  && python3 -m pip install jupyter-server-proxy \
- && python3 -m pip install jupyter-rsession-proxy==1.2 
+ #&& python3 -m pip install jupyter-rsession-proxy==1.2 
+ && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy.git \
+# Fix revocaiton list permissions for rserver
+ && echo "auth-revocation-list-dir=/tmp/rstudio-server-revocation-list/" >> /etc/rstudio/rserver.conf
+
 
 # JULIA ====================================================================
 
@@ -165,8 +170,10 @@ RUN julia -e 'import Pkg; Pkg.update()' && \
 
 # Switch to $NB_USER
 USER $NB_UID
+
 # Switch to $HOME of $NB_USER
 WORKDIR $HOME
+
 
 # Clean npm cache, create a new jupyter notebook config
 RUN npm cache clean --force && \
