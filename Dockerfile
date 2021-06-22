@@ -120,6 +120,7 @@ RUN install2.r -e -n 3 -s --deps TRUE \
  rmarkdown \
  knitr \
  RJDBC \
+ reticulate \
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
