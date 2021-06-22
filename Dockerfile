@@ -121,6 +121,7 @@ RUN install2.r -e -n 3 -s --deps TRUE \
  knitr \
  RJDBC \
  reticulate \
+ jsonlite \
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
