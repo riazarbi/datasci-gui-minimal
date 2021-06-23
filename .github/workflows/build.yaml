@@ -1,4 +1,4 @@
-name: ci
+name: docker_build
 
 on:
   workflow_dispatch:
@@ -40,3 +40,22 @@ jobs:
           tags: |
               riazarbi/datasci-gui-minimal:${{ fromJson(steps.gen_tag.outputs.tag) }}
               riazarbi/datasci-gui-minimal:focal
+      -
+        name: Modify downstream Dockerfile
+        run: |
+          var="FROM riazarbi/datasci-gui-minimal:${{ fromJson(steps.gen_tag.outputs.tag) }}"
+          DOWNSTREAM_REPO=datasci-r-8020
+          INPUT_COMMIT_MESSAGE="Update from https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+          
+          echo "Cloning destination git repository"
+          git config --global user.email riazarbi@gmail.com
+          git config --global user.name riazarbi.gh_ci
+          git clone --single-branch --branch focal "https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/riazarbi/$DOWNSTREAM_REPO.git"
+          cd "$DOWNSTREAM_REPO"
+          echo "Changing the downstream repo FROM tag to $var"
+          sed -i "1s|.*|$var|" Dockerfile
+          echo "Adding git commit"
+          git add -A
+          git commit --message "$INPUT_COMMIT_MESSAGE"
+          echo "Pushing git commit"
+          git push origin 
