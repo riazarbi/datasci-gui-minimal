@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-base:focal
+FROM riazarbi/datasci-base:20210623
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
