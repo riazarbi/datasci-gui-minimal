@@ -10,8 +10,8 @@ USER root
 
 # Install R and RStudio
 # Works
-ENV RSTUDIO_VERSION 1.3.959 \
-    SHINY_VERSION 1.5.9.923
+ENV RSTUDIO_VERSION=1.3.959 
+ENV SHINY_VERSION=1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
@@ -20,17 +20,17 @@ ARG NB_GID="100"
 
 # Configure environment
 # Do we need this? Conflicts early locale settings
-ENV SHELL=/bin/bash \
-    NB_USER=$NB_USER \
-    NB_UID=$NB_UID \
-    NB_GID=$NB_GID \
-    LC_ALL=en_US.UTF-8 \
-    LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8 \
-    TZ="Africa/Johannesburg" \
-    HOME=/home/$NB_USER \
-    JUPYTER_ENABLE_LAB=1 \
-    R_LIBS_SITE=/usr/lib/R/site-library
+ENV SHELL=/bin/bash 
+ENV NB_USER=$NB_USER
+ENV NB_UID=$NB_UID 
+ENV NB_GID=$NB_GID 
+ENV LC_ALL=en_US.UTF-8 
+ENV LANG=en_US.UTF-8 
+ENV LANGUAGE=en_US.UTF-8 
+ENV TZ="Africa/Johannesburg" 
+ENV HOME=/home/$NB_USER 
+ENV JUPYTER_ENABLE_LAB=1 
+ENV R_LIBS_SITE=/usr/lib/R/site-library
 
 # JUPYTER =====================================================================
 
@@ -104,27 +104,28 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     libmagick++-dev \
     libfontconfig1-dev \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /var/lib/apt/lists/* 
 #   Note we use install2r because it halts build it package install fails. 
 #   This is silent with install.packages(). Also multicore is nice.
- && Rscript -e 'install.packages(c("littler", "docopt"))' \ 
+RUN Rscript -e 'install.packages(c("littler", "docopt"))' \ 
  && ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
  && ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
- && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r 
+ && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r \
 # Set up openblas and link to R
  && install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
     ropenblas \
  && R -e "ropenblas::ropenblas()" \
+ && rm -rf /tmp/*
+
 # Install jupyter R kernel
- && install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
- devtools \
- shiny \ 
- rmarkdown \
- knitr \
- RJDBC \
- reticulate \
- jsonlite \
-# Jupyter-rsession
+RUN install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
+    devtools \
+    shiny \ 
+    rmarkdown \
+    knitr \
+    RJDBC \
+    reticulate \
+    jsonlite \
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
  && python3 -m pip install jupyter-server-proxy \
@@ -178,8 +179,8 @@ USER $NB_UID
 WORKDIR $HOME
 
 # Set NB_USER ENV vars
-ENV PATH="${PATH}:/usr/lib/rstudio-server/bin" \
-    TZ="Africa/Johannesburg"
+ENV PATH="${PATH}:/usr/lib/rstudio-server/bin" 
+ENV TZ="Africa/Johannesburg"
 
 # Clean npm cache, create a new jupyter notebook config
 RUN npm cache clean --force  \
