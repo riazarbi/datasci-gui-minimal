@@ -122,6 +122,8 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
  rmarkdown \
  knitr \
  RJDBC \
+ reticulate \
+ jsonlite \
 # Jupyter-rsession
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
