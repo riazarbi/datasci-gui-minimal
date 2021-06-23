@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-base:focal
+FROM riazarbi/datasci-base:20210623
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
@@ -38,7 +38,7 @@ ENV R_LIBS_SITE=/usr/lib/R/site-library
 EXPOSE 8888
 
 # Add a script that we will use to correct permissions after running certain commands
-ADD fix-permissions /usr/local/bin/fix-permissions
+ADD fix-permissions /usr/local/bin/fix-permissions 
 
 RUN DEBIAN_FRONTEND=noninteractive \ 
     apt-get update \
@@ -157,7 +157,7 @@ RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
 # Create JULIA_PKGDIR 
  && mkdir "${JULIA_PKGDIR}"  \
  && chown "${NB_USER}" "${JULIA_PKGDIR}" \
-    fix-permissions "${JULIA_PKGDIR}" \ 
+    /usr/local/bin/fix-permissions "${JULIA_PKGDIR}" \ 
 # Install IJulia as jovyan and then move the kernelspec out
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
@@ -167,7 +167,7 @@ RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
  && mv "${HOME}/.local/share/jupyter/kernels/julia"* "/usr/local/share/jupyter/kernels/"  \
  && chmod -R go+rx "/usr/local/share/jupyter"  \
  && rm -rf "${HOME}/.local"  \
- && fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter" \
+ && /usr/local/bin/fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter" \
  && rm -rf /tmp/*
 
 # USER SETTINGS ============================================================
@@ -198,8 +198,8 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root
 USER root
-RUN fix-permissions /etc/jupyter/
-RUN fix-permissions $HOME ${JULIA_PKGDIR}
+RUN /usr/local/bin/fix-permissions /etc/jupyter/
+RUN /usr/local/bin/fix-permissions $HOME ${JULIA_PKGDIR}
 
 # Run as NB_USER ============================================================
 
