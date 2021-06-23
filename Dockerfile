@@ -10,9 +10,8 @@ USER root
 
 # Install R and RStudio
 # Works
-ENV RSTUDIO_VERSION 1.3.959
-
-ENV SHINY_VERSION 1.5.9.923
+ENV RSTUDIO_VERSION 1.3.959 \
+    SHINY_VERSION 1.5.9.923
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
@@ -28,8 +27,10 @@ ENV SHELL=/bin/bash \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
+    TZ="Africa/Johannesburg" \
     HOME=/home/$NB_USER \
-    JUPYTER_ENABLE_LAB=1
+    JUPYTER_ENABLE_LAB=1 \
+    R_LIBS_SITE=/usr/lib/R/site-library
 
 # JUPYTER =====================================================================
 
@@ -59,7 +60,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
     useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
     usermod -a -G staff $NB_USER && \
     chmod g+w /etc/passwd  \
- && /usr/local/bin/fix-permissions $HOME
+ && /usr/local/bin/fix-permissions $HOME \
+ && rm -rf /tmp/*
 
 # RSESSION ==================================================================
 
@@ -106,15 +108,15 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
 #   Note we use install2r because it halts build it package install fails. 
 #   This is silent with install.packages(). Also multicore is nice.
  && Rscript -e 'install.packages(c("littler", "docopt"))' \ 
- && ln -s /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
- && ln -s /usr/local/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
- && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r 
+ && ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
+ && ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
+ && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r 
 # Set up openblas and link to R
-RUN install2.r -e -n 3 -s --deps TRUE \
- ropenblas \
+ && install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
+    ropenblas \
  && R -e "ropenblas::ropenblas()" \
 # Install jupyter R kernel
- && install2.r -e -n 3 -s --deps TRUE \
+ && install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
  devtools \
  shiny \ 
  rmarkdown \
@@ -127,8 +129,8 @@ RUN install2.r -e -n 3 -s --deps TRUE \
  #&& python3 -m pip install jupyter-rsession-proxy==1.2 
  && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy.git \
 # Fix revocaiton list permissions for rserver
- && echo "auth-revocation-list-dir=/tmp/rstudio-server-revocation-list/" >> /etc/rstudio/rserver.conf
-
+ && echo "auth-revocation-list-dir=/tmp/rstudio-server-revocation-list/" >> /etc/rstudio/rserver.conf \
+ && rm -rf /tmp/*
 
 # JULIA ====================================================================
 
@@ -145,26 +147,25 @@ RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
     wget -q https://julialang-s3.julialang.org/bin/linux/x64/$(echo "${JULIA_VERSION}" | cut -d. -f 1,2)"/julia-${JULIA_VERSION}-linux-x86_64.tar.gz" && \
     #echo "fd6d8cadaed678174c3caefb92207a3b0e8da9f926af6703fb4d1e4e4f50610a *julia-${JULIA_VERSION}-linux-x86_64.tar.gz" | sha256sum -c - && \
     tar xzf "julia-${JULIA_VERSION}-linux-x86_64.tar.gz" -C "/opt/julia-${JULIA_VERSION}" --strip-components=1 && \
-    rm "/tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz"
-RUN ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia
-
+    rm "/tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz" \
+ && ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia \
 # Show Julia where conda libraries are \
-RUN mkdir /etc/julia && \
-    # Create JULIA_PKGDIR \
-    mkdir "${JULIA_PKGDIR}" && \
-    chown "${NB_USER}" "${JULIA_PKGDIR}" && \
-    fix-permissions "${JULIA_PKGDIR}"
- 
+ && mkdir /etc/julia  \
+# Create JULIA_PKGDIR 
+ && mkdir "${JULIA_PKGDIR}"  \
+ && chown "${NB_USER}" "${JULIA_PKGDIR}" \
+    fix-permissions "${JULIA_PKGDIR}" \ 
 # Install IJulia as jovyan and then move the kernelspec out
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
-RUN julia -e 'import Pkg; Pkg.update()' && \
-    julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" && \
+ && julia -e 'import Pkg; Pkg.update()'  \
+ &&  julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" \
     # move kernelspec out
-    mv "${HOME}/.local/share/jupyter/kernels/julia"* "/usr/local/share/jupyter/kernels/" && \
-    chmod -R go+rx "/usr/local/share/jupyter" && \
-    rm -rf "${HOME}/.local" && \
-    fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter"
+ && mv "${HOME}/.local/share/jupyter/kernels/julia"* "/usr/local/share/jupyter/kernels/"  \
+ && chmod -R go+rx "/usr/local/share/jupyter"  \
+ && rm -rf "${HOME}/.local"  \
+ && fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter" \
+ && rm -rf /tmp/*
 
 # USER SETTINGS ============================================================
 
@@ -174,11 +175,14 @@ USER $NB_UID
 # Switch to $HOME of $NB_USER
 WORKDIR $HOME
 
+# Set NB_USER ENV vars
+ENV PATH="${PATH}:/usr/lib/rstudio-server/bin" \
+    TZ="Africa/Johannesburg"
 
 # Clean npm cache, create a new jupyter notebook config
-RUN npm cache clean --force && \
-    jupyter notebook --generate-config && \
-    rm -rf /home/$NB_USER/.cache/yarn
+RUN npm cache clean --force  \
+ && jupyter notebook --generate-config  \
+ && rm -rf /home/$NB_USER/.cache/yarn 
 
 # Configure container startup
 CMD ["/bin/bash", "start-notebook.sh"]
@@ -197,4 +201,3 @@ RUN fix-permissions $HOME ${JULIA_PKGDIR}
 # Run as NB_USER ============================================================
 
 USER $NB_USER
-ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
