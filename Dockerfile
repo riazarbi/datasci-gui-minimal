@@ -112,13 +112,13 @@ RUN Rscript -e 'install.packages(c("littler", "docopt"))' \
  && ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
  && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r \
 # Set up openblas and link to R
- && install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
+ && install2.r -e TRUE -n 3 -s TRUE --deps TRUE -l $R_LIBS_SITE \ RUN  
     ropenblas \
  && R -e "ropenblas::ropenblas()" \
  && rm -rf /tmp/*
 
 # Install jupyter R kernel
-RUN install2.r -e -n 3 -s --deps TRUE -l $R_LIBS_SITE \
+RUN install2.r -e TRUE -n 3 -s TRUE --deps TRUE -l $R_LIBS_SITE \
     devtools \
     shiny \ 
     rmarkdown \
