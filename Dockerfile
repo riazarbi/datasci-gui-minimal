@@ -112,13 +112,13 @@ RUN Rscript -e 'install.packages(c("littler", "docopt"))' \
  && ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
  && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r \
 # Set up openblas and link to R
- && install2.r --skipinstalled TRUE --error TRUE --ncpus 3 --deps TRUE -l $R_LIBS_SITE  \   
+ && install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE  \   
     ropenblas \
  && R -e "ropenblas::ropenblas()" \
  && rm -rf /tmp/*
 
 # Install jupyter R kernel
-RUN install2.r --skipinstalled TRUE --error TRUE --ncpus 3 --deps TRUE -l $R_LIBS_SITE   \
+RUN install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE   \
     devtools \
     shiny \ 
     rmarkdown \
