@@ -11,6 +11,7 @@ USER root
 # Install R and RStudio
 # Works
 ENV RSTUDIO_VERSION=1.4.1722
+#https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-1.4.1722-amd64.deb
 ENV SHINY_VERSION=1.5.9.923
 ENV RSESSION_PROXY_RSTUDIO_1_4=yes
 
@@ -86,7 +87,8 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     r-base-dev \
     gdebi-core \
 # Install RStudio
- && wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
+ #&& wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
+ && wget --quiet https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
  && gdebi -n rstudio-server-${RSTUDIO_VERSION}-amd64.deb \ 
  && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
 # Install Shiny Server
