@@ -13,7 +13,8 @@ USER root
 ENV RSTUDIO_VERSION=1.4.1722
 #https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-1.4.1722-amd64.deb
 ENV SHINY_VERSION=1.5.9.923
-#ENV RSESSION_PROXY_RSTUDIO_1_4=yes
+ENV RSESSION_PROXY_RSTUDIO_1_4=yes
+ENV RSESSION_PROXY_WWW_ROOT_PATH='/rstudio/'
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
