@@ -29,7 +29,7 @@ jobs:
         name: Generate tag
         id: gen_tag
         run: |
-          TAG=$(printf '%(%Y%m%d)T\n' -1)
+          TAG=$(printf '%(%Y%m%d%H%M%S)T\n' -1)
           echo '::set-output name=tag::'$TAG
       -
         name: Build and push
