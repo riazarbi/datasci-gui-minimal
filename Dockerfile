@@ -132,9 +132,10 @@ RUN install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE   
     jsonlite \
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
- && python3 -m pip install jupyter-server-proxy \
+ #&& python3 -m pip install jupyter-server-proxy \
+ && python3 -m pip install git+https://github.com/zeehio/jupyter-server-proxy.git@03afb8b6816d0cf51af34bb995d6da078aac6185 \
  #&& python3 -m pip install jupyter-rsession-proxy==1.2 
- && python3 -m pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy.git \
+ && python3 -m pip install git+https://github.com/zeehio/jupyter-rsession-proxy.git@9def6461460e3b43df7db718c3276504d4252873 \
 # Fix revocaiton list permissions for rserver
  && echo "auth-revocation-list-dir=/tmp/rstudio-server-revocation-list/" >> /etc/rstudio/rserver.conf \
  && rm -rf /tmp/*
