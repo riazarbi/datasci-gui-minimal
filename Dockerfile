@@ -130,6 +130,7 @@ RUN install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE   
     RJDBC \
     reticulate \
     jsonlite \
+    learnr \
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
  #&& python3 -m pip install jupyter-server-proxy \
