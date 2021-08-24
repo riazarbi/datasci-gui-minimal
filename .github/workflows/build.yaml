@@ -69,7 +69,7 @@ jobs:
           echo "Cloning destination git repository"
           git config --global user.email riazarbi@gmail.com
           git config --global user.name riazarbi.gh_ci
-          git clone --single-branch --branch focal "https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/riazarbi/$DOWNSTREAM_REPO.git"
+          git clone --single-branch --branch main "https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/riazarbi/$DOWNSTREAM_REPO.git"
           cd "$DOWNSTREAM_REPO"
           echo "Changing the downstream repo FROM tag to $var"
           sed -i "1s|.*|$var|" Dockerfile
