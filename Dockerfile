@@ -49,6 +49,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
  && DEBIAN_FRONTEND=noninteractive \
     apt-get install -yq --no-install-recommends \
     npm nodejs \
+    libfribidi-dev \
 # Install all the jupyter packages
  && python3 -m pip install --upgrade pip && \
     python3 -m pip install jupyter jupyterhub jupyterlab \
