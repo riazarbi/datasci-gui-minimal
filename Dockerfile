@@ -41,7 +41,8 @@ ENV R_LIBS_SITE=/usr/lib/R/site-library
 EXPOSE 8888
 
 # Add a script that we will use to correct permissions after running certain commands
-ADD fix-permissions /usr/local/bin/fix-permissions 
+ADD fix-permissions /usr/local/bin/fix-permissions  \
+&& chmod +x /usr/local/bin/fix-permissions 
 
 RUN DEBIAN_FRONTEND=noninteractive \ 
     apt-get update \
@@ -52,7 +53,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
  && python3 -m pip install --upgrade pip && \
     python3 -m pip install jupyter jupyterhub jupyterlab \
  && python3 -m pip install nbgitpuller \
- && chmod +x /usr/local/bin/fix-permissions \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
  && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
 # Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
@@ -179,6 +179,7 @@ RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
 # USER SETTINGS ============================================================
 
 # Switch to $NB_USER
+RUN /usr/local/bin/fix-permissions $HOME
 USER $NB_UID
 
 # Switch to $HOME of $NB_USER
