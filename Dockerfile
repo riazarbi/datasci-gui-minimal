@@ -41,8 +41,8 @@ ENV R_LIBS_SITE=/usr/lib/R/site-library
 EXPOSE 8888
 
 # Add a script that we will use to correct permissions after running certain commands
-ADD fix-permissions /usr/local/bin/fix-permissions  \
-&& chmod +x /usr/local/bin/fix-permissions 
+ADD fix-permissions /usr/local/bin/fix-permissions  
+RUN chmod +x /usr/local/bin/fix-permissions 
 
 RUN DEBIAN_FRONTEND=noninteractive \ 
     apt-get update \
