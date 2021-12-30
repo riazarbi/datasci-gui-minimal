@@ -134,6 +134,7 @@ RUN install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE   
     reticulate \
     jsonlite \
     learnr \
+    aws.s3 \
  && R -e "install.packages('IRkernel')" \
  && R --quiet -e "IRkernel::installspec(user=FALSE)" \
  && python3 -m pip install jupyter-server-proxy \
