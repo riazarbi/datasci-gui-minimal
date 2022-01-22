@@ -97,7 +97,7 @@ jobs:
           git commit --message "$INPUT_COMMIT_MESSAGE"
           echo "Pushing git commit"
           git push origin 
--
+      -
         name: Modify Crypto image
         run: |
           var="FROM riazarbi/datasci-gui-minimal:${{ fromJson(steps.gen_tag.outputs.tag) }}"
