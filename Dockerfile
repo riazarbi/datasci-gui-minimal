@@ -111,6 +111,7 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     libfontconfig1-dev \
     libharfbuzz-dev \
     libfribidi-dev \
+    libgdal-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
 #   Note we use install2r because it halts build it package install fails. 
