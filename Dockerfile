@@ -10,7 +10,7 @@ USER root
 
 # Install R and RStudio
 # Works
-ENV RSTUDIO_VERSION=2021.09.1-372
+ENV RSTUDIO_VERSION=2022.02.1-461
 #https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-1.4.1722-amd64.deb
 ENV SHINY_VERSION=1.5.9.923
 ENV RSESSION_PROXY_RSTUDIO_1_4=yes
