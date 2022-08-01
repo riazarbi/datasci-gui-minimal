@@ -33,7 +33,7 @@ ENV LANGUAGE=en_US.UTF-8
 ENV TZ="Africa/Johannesburg" 
 ENV HOME=/home/$NB_USER 
 ENV JUPYTER_ENABLE_LAB=1 
-ENV R_LIBS_SITE=/usr/lib/R/site-library
+ENV R_LIBS_SITE=/usr/local/lib/R/site-library
 
 # JUPYTER =====================================================================
 
@@ -114,17 +114,13 @@ RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB65171
     libgdal-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
+
 #   Note we use install2r because it halts build it package install fails. 
 #   This is silent with install.packages(). Also multicore is nice.
-RUN Rscript -e 'install.packages(c("littler", "docopt"))' \ 
- && ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
- && ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
- && ln -s /usr/lib/R/site-library/littler/bin/r /usr/local/bin/r \
-# Set up openblas and link to R
-# Temp note: commented this out because it causes regressions to crash Rstudio
-# && install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE  \   
-#    ropenblas \
-# && R -e "ropenblas::ropenblas()" \
+RUN Rscript -e 'install.packages(c("littler", "docopt"))' \
+ && ln -s /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
+ && ln -s /usr/local/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
+ && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r \
  && rm -rf /tmp/*
 
 # Install jupyter R kernel
