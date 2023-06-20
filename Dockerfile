@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-base:20230520202424
+FROM riazarbi/datasci-base:20230620202427
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
