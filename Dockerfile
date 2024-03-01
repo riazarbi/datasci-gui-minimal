@@ -52,7 +52,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     libfribidi-dev \
 # Install all the jupyter packages
  && python3 -m pip install --upgrade pip && \
-    python3 -m pip install jupyter jupyterhub jupyterlab \
+    python3 -m pip install jupyter jupyterhub jupyterlab jupyter-rsession-proxy \
  && python3 -m pip install nbgitpuller \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
  && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
@@ -70,114 +70,54 @@ RUN DEBIAN_FRONTEND=noninteractive \
 # RSESSION ==================================================================
 
 # Add apt gpg key
-RUN gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 \
- && gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | sudo apt-key add - \
- && echo deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/ >> /etc/apt/sources.list \
- && echo deb http://za.archive.ubuntu.com/ubuntu/ focal-backports main restricted universe >> /etc/apt/sources.list \
-# Install prerequisites
- && DEBIAN_FRONTEND=noninteractive \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive \
-    apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y --no-install-recommends \
-    fonts-dejavu \
-    gfortran \
-    libclang-dev \
-    r-base \
-    r-recommended \
-    r-base-dev \
-    gdebi-core \
-    libudunits2-dev \
-# Install RStudio
- #&& wget --quiet https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
- && wget --quiet https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
- && gdebi -n rstudio-server-${RSTUDIO_VERSION}-amd64.deb \ 
- && rm rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
-# Install Shiny Server
- && wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-${SHINY_VERSION}-amd64.deb" -O ss-latest.deb \
- && gdebi -n ss-latest.deb \
- && rm -f ss-latest.deb \
-#    Install R package dependencies
- && DEBIAN_FRONTEND=noninteractive \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libxml2-dev \
-    libssh2-1-dev \
-    libgit2-dev \
-    libcurl4-openssl-dev \
-    cargo \
-    libmagick++-dev \
-    libfontconfig1-dev \
-    libharfbuzz-dev \
-    libfribidi-dev \
-    libgdal-dev \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update -qq \
+# install two helper packages we need
+ && apt-get install -y --no-install-recommends software-properties-common dirmngr \
+# add the signing key (by Michael Rutter) for these repos
+# To verify key, run gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc 
+# Fingerprint: E298A3A825C0D65DFD57CBB651716619E084DAB9
+ && wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+# add the R 4.0 repo from CRAN -- adjust 'focal' to 'groovy' or 'bionic' as needed
+ && sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" \
+ && apt-get install -y --no-install-recommends r-base
 
-#   Note we use install2r because it halts build it package install fails. 
-#   This is silent with install.packages(). Also multicore is nice.
-RUN Rscript -e 'install.packages(c("littler", "docopt"))' \
- && ln -s /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
- && ln -s /usr/local/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
- && ln -s /usr/local/lib/R/site-library/littler/bin/r /usr/local/bin/r \
- && rm -rf /tmp/*
+RUN apt-get install -y gdebi-core \
+ && wget --quiet https://download2.rstudio.org/server/focal/amd64/rstudio-server-2023.12.1-402-amd64.deb \
+ && gdebi -n rstudio-server-2023.12.1-402-amd64.deb \
+ && rm rstudio-server-2023.12.1-402-amd64.deb
 
-# Install jupyter R kernel
-RUN install2.r --skipinstalled --error  --ncpus 3 --deps TRUE -l $R_LIBS_SITE   \
-    devtools \
-    shiny \ 
-    rmarkdown \
-    knitr \
-    RJDBC \
-    reticulate \
-    jsonlite \
-    learnr \
-    aws.s3 \
- && R -e "install.packages('IRkernel')" \
- && R --quiet -e "IRkernel::installspec(user=FALSE)" \
- && python3 -m pip install jupyter-server-proxy \
- #&& python3 -m pip install git+https://github.com/zeehio/jupyter-server-proxy.git@03afb8b6816d0cf51af34bb995d6da078aac6185 \
- && python3 -m pip install jupyter-rsession-proxy \
- #&& python3 -m pip install git+https://github.com/zeehio/jupyter-rsession-proxy.git@9def6461460e3b43df7db718c3276504d4252873 \
- # Fix revocation list permissions for rserver
- && echo "auth-revocation-list-dir=/tmp/rstudio-server-revocation-list/" >> /etc/rstudio/rserver.conf \
- && rm -rf /tmp/*
+# Maybe not needed?
+#RUN DEBIAN_FRONTEND=noninteractive \
+#    apt-get update && \
+#    apt-get install -y --no-install-recommends \
+#    libxml2-dev \
+#    libssh2-1-dev \
+#    libgit2-dev \
+#    libcurl4-openssl-dev \
+#    cargo \
+#    libmagick++-dev \
+#    libfontconfig1-dev \
+#    libharfbuzz-dev \
+#    libfribidi-dev \
+#    libgdal-dev \
+# && apt-get clean \
+# && rm -rf /var/lib/apt/lists/* 
 
-# JULIA ====================================================================
+# Install system dependencies
+COPY apt.txt .
+RUN echo "Checking for 'apt.txt'..." \
+        ; if test -f "apt.txt" ; then \
+        apt-get update --fix-missing > /dev/null\
+        && xargs -a apt.txt apt-get install --yes \
+        && apt-get clean > /dev/null \
+        && rm -rf /var/lib/apt/lists/* \
+        && rm -rf /tmp/* \
+        ; fi
 
-# Julia dependencies
-# install Julia packages in /opt/julia instead of $HOME
-ENV JULIA_DEPOT_PATH=/opt/julia
-ENV JULIA_PKGDIR=/opt/julia
-ENV JULIA_VERSION=1.5.0
+# Install R dependencies
+COPY install.R .
+RUN if [ -f install.R ]; then R --quiet -f install.R; fi
 
-WORKDIR /tmp
-
-# hadolint ignore=SC2046
-RUN mkdir "/opt/julia-${JULIA_VERSION}" && \
-    wget -q https://julialang-s3.julialang.org/bin/linux/x64/$(echo "${JULIA_VERSION}" | cut -d. -f 1,2)"/julia-${JULIA_VERSION}-linux-x86_64.tar.gz" && \
-    #echo "fd6d8cadaed678174c3caefb92207a3b0e8da9f926af6703fb4d1e4e4f50610a *julia-${JULIA_VERSION}-linux-x86_64.tar.gz" | sha256sum -c - && \
-    tar xzf "julia-${JULIA_VERSION}-linux-x86_64.tar.gz" -C "/opt/julia-${JULIA_VERSION}" --strip-components=1 && \
-    rm "/tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz" \
- && ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia \
-# Show Julia where conda libraries are \
- && mkdir /etc/julia  \
-# Create JULIA_PKGDIR 
- && mkdir "${JULIA_PKGDIR}"  \
- && chown "${NB_USER}" "${JULIA_PKGDIR}" \
-    /usr/local/bin/fix-permissions "${JULIA_PKGDIR}" \ 
-# Install IJulia as jovyan and then move the kernelspec out
-# to the system share location. Avoids problems with runtime UID change not
-# taking effect properly on the .local folder in the jovyan home dir.
- && julia -e 'import Pkg; Pkg.update()'  \
- &&  julia -e "using Pkg; pkg\"add IJulia\"; pkg\"precompile\"" \
-    # move kernelspec out
- && mv "${HOME}/.local/share/jupyter/kernels/julia"* "/usr/local/share/jupyter/kernels/"  \
- && chmod -R go+rx "/usr/local/share/jupyter"  \
- && rm -rf "${HOME}/.local"  \
- && /usr/local/bin/fix-permissions "${JULIA_PKGDIR}" "/usr/local/share/jupyter" \
- && rm -rf /tmp/*
 
 # USER SETTINGS ============================================================
 

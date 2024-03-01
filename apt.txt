@@ -1,0 +1,4 @@
+libicu-dev
+pandoc
+python3
+
