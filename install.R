@@ -6,7 +6,8 @@ list.of.packages <- c("stringi",
 			"reticulate",   
 			"jsonlite", 
 			"aws.s3",
-                        "IRkernel") 
+                        "IRkernel",
+                        "languageserver") 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 
 

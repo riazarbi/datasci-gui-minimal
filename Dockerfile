@@ -119,6 +119,18 @@ COPY install.R .
 RUN if [ -f install.R ]; then R --quiet -f install.R; fi
 
 
+# INSTALL VSCODE ===========================================================
+
+# Install VSCode
+RUN curl -fsSL https://code-server.dev/install.sh | sh \
+ && pip3 install jupyter-vscode-proxy 
+
+# Install VSCode extensions
+RUN code-server --install-extension ms-python.python \
+ && code-server --install-extension innoverio.vscode-dbt-power-user \
+ && code-server --install-extension REditorSupport.r
+
+
 # USER SETTINGS ============================================================
 
 # Switch to $NB_USER
