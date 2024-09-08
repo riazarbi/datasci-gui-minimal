@@ -1,4 +1,4 @@
-FROM riazarbi/datasci-base:20240908055737
+FROM base
 
 LABEL authors="Riaz Arbi,Gordon Inggs"
 
@@ -10,11 +10,6 @@ USER root
 
 # Install R and RStudio
 # Works
-ENV RSTUDIO_VERSION=2022.02.1-461
-#https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-1.4.1722-amd64.deb
-ENV SHINY_VERSION=1.5.9.923
-ENV RSESSION_PROXY_RSTUDIO_1_4=yes
-#ENV RSESSION_PROXY_WWW_ROOT_PATH='/rstudio/'
 
 # Create same user as jupyter docker stacks so that k8s will run fine
 ARG NB_USER="jovyan"
@@ -51,9 +46,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
     npm nodejs \
     libfribidi-dev \
 # Install all the jupyter packages
- && python3 -m pip install --upgrade pip && \
-    python3 -m pip install jupyter jupyterhub jupyterlab jupyter-rsession-proxy \
- && python3 -m pip install nbgitpuller \
+ && python3 -m pip install jupyter jupyterhub jupyterlab jupyter-rsession-proxy --break-system-packages \
+ && python3 -m pip install nbgitpuller --break-system-packages \
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
  && sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc \
 # Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
@@ -79,12 +73,12 @@ RUN apt-get update -qq \
  && wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
 # add the R 4.0 repo from CRAN -- adjust 'focal' to 'groovy' or 'bionic' as needed
  && sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" \
- && apt-get install -y --no-install-recommends r-base
+ && apt-get install -y r-base --no-install-recommends
 
 RUN apt-get install -y gdebi-core \
- && wget --quiet https://download2.rstudio.org/server/focal/amd64/rstudio-server-2023.12.1-402-amd64.deb \
- && gdebi -n rstudio-server-2023.12.1-402-amd64.deb \
- && rm rstudio-server-2023.12.1-402-amd64.deb
+ && wget --quiet https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.04.2-764-amd64.deb \
+ && gdebi -n rstudio-server-2024.04.2-764-amd64.deb \
+ && rm rstudio-server-2024.04.2-764-amd64.deb
 
 # Maybe not needed?
 #RUN DEBIAN_FRONTEND=noninteractive \
@@ -123,7 +117,7 @@ RUN if [ -f install.R ]; then R --quiet -f install.R; fi
 
 # Install VSCode
 RUN curl -fsSL https://code-server.dev/install.sh | sh \
- && pip3 install jupyter-vscode-proxy 
+ && pip3 install jupyter-vscode-proxy --break-system-packages
 
 # Install VSCode extensions
 RUN code-server --install-extension ms-python.python \
@@ -161,7 +155,7 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 RUN /usr/local/bin/fix-permissions /etc/jupyter/
-RUN /usr/local/bin/fix-permissions $HOME ${JULIA_PKGDIR}
+RUN /usr/local/bin/fix-permissions $HOME 
 
 # Run as NB_USER ============================================================
 
