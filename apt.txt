@@ -2,3 +2,4 @@ libicu-dev
 pandoc
 python3
 libzmq3-dev
+libicu74

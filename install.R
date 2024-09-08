@@ -1,5 +1,4 @@
-list.of.packages <- c("stringi",
-			"devtools",
+list.of.packages <- c("devtools",
 			"rmarkdown",  
 			"knitr", 
 			"RJDBC", 
@@ -11,7 +10,7 @@ list.of.packages <- c("stringi",
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 
 
-install.packages("remotes")
+install.packages(c("remotes", "stringi"))
 
 # use posit binary linux packages
 options(HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version["platform"], R.version["arch"], R.version["os"])))
